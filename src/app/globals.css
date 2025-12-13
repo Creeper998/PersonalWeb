@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 终端风格全局样式 */
+@layer base {
+  body {
+    @apply bg-terminal-bg text-terminal-text font-mono antialiased;
+  }
+
+  /* 平滑滚动 */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* 链接样式 */
+  a {
+    @apply text-terminal-green hover:text-terminal-prompt transition-colors;
+  }
+}
+
+/* 自定义滚动条样式（终端风格） */
+@layer utilities {
+  .scrollbar-terminal::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollbar-terminal::-webkit-scrollbar-track {
+    @apply bg-terminal-bg;
+  }
+
+  .scrollbar-terminal::-webkit-scrollbar-thumb {
+    @apply bg-terminal-border rounded;
+  }
+
+  .scrollbar-terminal::-webkit-scrollbar-thumb:hover {
+    @apply bg-terminal-text;
+  }
+}
+

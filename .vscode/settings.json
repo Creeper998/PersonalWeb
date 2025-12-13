@@ -1,0 +1,17 @@
+{
+  // Markdown 文件设置
+  "files.associations": {
+    "*.md": "markdown",
+    "*.MD": "markdown"
+  },
+   // Markdown Preview Enhanced 配置
+   "markdown-preview-enhanced.enableScriptExecution": true,
+   "markdown-preview-enhanced.previewTheme": "github-light.css",
+   "markdown-preview-enhanced.enableSyncScroll": true,
+   // 自动打开预览（需要手动触发一次）
+   "markdown-preview-enhanced.openPreviewPaneAutomatically": true,
+   // 实时同步
+  "markdown-preview-enhanced.liveUpdate": true,
+  "workbench.activityBar.orientation": "vertical"
+}
+
