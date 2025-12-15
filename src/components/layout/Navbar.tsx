@@ -36,8 +36,8 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-terminal-bg/90 backdrop-blur-sm border-b border-terminal-border">
-      <div className="container mx-auto px-4">
+    <nav className="fixed top-4 left-4 right-4 z-50 bg-terminal-bg/90 backdrop-blur-sm border border-terminal-border rounded-lg shadow-lg">
+      <div className="px-6">
         <div className="flex justify-between items-center h-16">
           {/* Logo/品牌 */}
           <Link href="/" className="text-xl font-bold text-terminal-green hover:text-terminal-prompt transition-colors">
