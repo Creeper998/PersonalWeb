@@ -5,6 +5,7 @@ import RotatingTags from '@/components/animation/RotatingTags'
 import TypewriterText from '@/components/animation/TypewriterText'
 import FadeInText from '@/components/animation/FadeInText'
 import BackgroundEffect, { PixelBlastHandle } from '@/components/background/BackgroundEffect'
+import CodeStyleSection from '@/components/ui/CodeStyleSection'
 
 export default function AboutPage() {
   const roles = [
@@ -71,6 +72,16 @@ export default function AboutPage() {
             />
           </FadeInText>
         </div>
+
+        {/* 第四行：AboutMe 部分 - 代码风格 */}
+        <CodeStyleSection title="AboutMe" delay={1800} duration={800}>
+          {/* 内容占位符，后续添加 */}
+          <div className="h-4"></div>
+          <div className="h-4"></div>
+          <div className="h-4"></div>
+          <div className="h-4"></div>
+          <div className="h-4"></div>
+        </CodeStyleSection>
       </div>
     </div>
     </>
