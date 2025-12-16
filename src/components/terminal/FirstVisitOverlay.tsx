@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import TerminalAnimation from './TerminalAnimation'
 import TerminalWindow from './TerminalWindow'
 
@@ -33,6 +34,7 @@ const terminalCommands = [
  * 延迟加载，不阻塞首屏渲染
  */
 export default function FirstVisitOverlay() {
+  const router = useRouter()
   // 初始状态设为 true，避免闪烁，然后在 useEffect 中检查
   const [showAnimation, setShowAnimation] = useState<boolean>(true)
   const [mounted, setMounted] = useState(false)
@@ -60,10 +62,12 @@ export default function FirstVisitOverlay() {
   }, [])
 
   const handleAnimationComplete = () => {
-    // 终端命令动画结束后，先展示一小段加载动画，再显示主页
+    // 终端命令动画结束后，先展示一小段加载动画，再跳转到 about 页面
     setIsLoading(true)
     setTimeout(() => {
       setShowAnimation(false)
+      // 跳转到 about 页面
+      router.push('/about')
     }, 1500)
   }
 
