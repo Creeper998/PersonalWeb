@@ -5,10 +5,13 @@ import RotatingTags from '@/components/animation/RotatingTags'
 export default function AboutPage() {
   const roles = [
     'BUG DEVELOPER',
-    'CODE WIZARD',
-    'RUST ENJOYER',
+  
     'FULL STACK',
     'PROBLEM SOLVER',
+    'Compatibility Handler',
+    'Ctrl+C/V Master',
+    'JS Logic Novice',
+    'Design-to-Code Translator',
   ]
 
   return (
