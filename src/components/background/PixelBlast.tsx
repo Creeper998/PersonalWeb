@@ -762,41 +762,55 @@ const PixelBlast = forwardRef<PixelBlastHandle, PixelBlastProps>(({
     }
     prevConfigRef.current = cfg;
     return () => {
-      if (threeRef.current && mustReinit) {
-        // 如果是重新初始化，需要移除旧的事件监听器
-        const t = threeRef.current;
-        if (t.onPointerDown && t.onPointerMove && t.renderer.domElement) {
-          t.renderer.domElement.removeEventListener('pointerdown', t.onPointerDown);
-          t.renderer.domElement.removeEventListener('pointermove', t.onPointerMove);
-        }
-        return;
-      }
+      // 修复：无论是否重新初始化，都要清理资源
       if (!threeRef.current) return;
       const t = threeRef.current;
+      
+      // 确保停止动画循环（最重要！）
+      if (t.raf !== undefined && t.raf !== null) {
+        cancelAnimationFrame(t.raf);
+        t.raf = undefined;
+      }
+      
       // 移除事件监听器
       if (t.onPointerDown && t.onPointerMove && t.renderer.domElement) {
         t.renderer.domElement.removeEventListener('pointerdown', t.onPointerDown);
         t.renderer.domElement.removeEventListener('pointermove', t.onPointerMove);
       }
+      
       // 移除窗口 resize 监听器
       if (t.setSize) {
         window.removeEventListener('resize', t.setSize);
       }
+      
       // 移除页面可见性监听器
       if (t.handleVisibilityChange) {
         document.removeEventListener('visibilitychange', t.handleVisibilityChange);
       }
+      
+      // 断开 ResizeObserver
       t.resizeObserver?.disconnect();
-      cancelAnimationFrame(t.raf!);
+      
+      // 清理 Three.js 资源
       t.quad?.geometry.dispose();
       t.material.dispose();
+      
       // 释放纹理资源（如果存在）
       if (t.touch?.texture) {
         t.touch.texture.dispose();
       }
+      
+      // 清理 EffectComposer
       t.composer?.dispose();
+      
+      // 清理 renderer
       t.renderer.dispose();
-      if (t.renderer.domElement.parentElement === container) container.removeChild(t.renderer.domElement);
+      
+      // 移除 DOM 元素
+      if (t.renderer.domElement.parentElement === container) {
+        container.removeChild(t.renderer.domElement);
+      }
+      
       threeRef.current = null;
     };
   }, [

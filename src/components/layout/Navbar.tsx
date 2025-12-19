@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import PillNav from './PillNav'
 
 /**
@@ -8,13 +9,14 @@ import PillNav from './PillNav'
  */
 
 export default function Navbar() {
-  const navItems = [
+  // 使用 useMemo 稳定化 navItems 的引用，避免每次渲染都创建新数组
+  const navItems = useMemo(() => [
     { href: '/about', label: 'about' },
     { href: '/experience', label: 'experience' },
     { href: '/projects', label: 'projects' },
     { href: '/notes', label: 'notes' },
     { href: '/contact', label: 'contact' },
-  ]
+  ], [])
 
   return (
     <nav className="fixed top-4 left-4 right-4 z-50 flex justify-center pointer-events-none">

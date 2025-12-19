@@ -36,6 +36,9 @@
   height: var(--nav-h);
   background: var(--base, #000);
   border-radius: 9999px;
+  /* 修复：确保导航栏在 JavaScript 加载前也可见 */
+  width: auto !important;
+  overflow: visible !important;
 }
 
 .pill-logo {

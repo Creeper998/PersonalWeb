@@ -33,12 +33,18 @@
  - 场景：当前page页面使用的是'use client'客户端渲染CSR 将组件导入，所有 section 组件都是同步导入的，需要等待所有 JavaScript 加载完成才能渲染
    -  衍生面试题：
       1. 当我网站首次加载组件(或其他什么...)多时，导致加载的速度慢，显示出来比较久，这是什么问题，怎么优化
+          - 该项目中所有 section 组件都是客户端组件（'use client'），page.tsx 同步导入了所有组件，  可以移除不必要的 'use client'，同时让组件在服务器端渲染，减少客户端 JavaScript
+
+          ```
+
+
+          ```
       2. Next.js 中服务器端渲染和客户端水合的过程是什么？如何优化首屏渲染速度？
-          - 服务器端渲染（SSR）时Next.js 在服务器生成 HTML，包含初始内容，然后将 HTML 发送到浏览器，浏览器可以立即显示内容（快速首屏），然后就是JavaScript 下载：浏览器下载 React 和组件相关的 JavaScript bundle。水合（Hydration）：React 在客户端"激活"HTML，使其可交互，这个过程叫水合，后续交互就是在客户端进行
+          - 服务器端渲染（SSR）时Next.js 在服务器生成 HTML，包含初始内容，然后将 HTML 发送到浏览器，浏览器可以立即显示内容（快速首屏），然后就是JavaScript 浏览器下载 React 和组件相关的 JavaScript bundle经过解析执行后才能渲染。水合（Hydration）：React 在客户端"激活"HTML，使其可交互，这个过程叫水合，后续交互就是在客户端进行
               ```
               优化方案：
-              - 减少客户端组件：将纯展示组件改为服务器组件，减少需要水合的代码量。
-              - 代码分割（Code Splitting）：使用动态导入，将非关键组件延迟加载。
-              - 流式 SSR（Streaming SSR）：使用 React 18 的流式渲染，逐步发送 HTML。
-              - 选择性水合（Selective Hydration）：只对需要交互的部分进行水合。
+              1.减少客户端组件：将纯展示组件改为服务器组件，减少需要水合的代码量。
+              2.代码分割（Code Splitting）：使用动态导入，将非关键组件延迟加载。
+              3.流式 SSR（Streaming SSR）：使用 React 18 的流式渲染，逐步发送 HTML。
+              4.选择性水合（Selective Hydration）：只对需要交互的部分进行水合。
               ```

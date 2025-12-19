@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import RotatingTags from '@/components/animation/RotatingTags'
 import TypewriterText from '@/components/animation/TypewriterText'
 import FadeInText from '@/components/animation/FadeInText'
-import BackgroundEffect, { PixelBlastHandle } from '@/components/background/BackgroundEffect'
+import { useBackground } from '@/contexts/BackgroundContext'
 import CodeStyleSection from '@/components/ui/CodeStyleSection'
 
 export default function AboutPage() {
@@ -19,7 +19,7 @@ export default function AboutPage() {
   ]
 
   const [showContent, setShowContent] = useState(false)
-  const backgroundRef = useRef<PixelBlastHandle>(null)
+  const { backgroundRef } = useBackground()
 
   useEffect(() => {
     // 页面加载时开始显示内容
@@ -34,13 +34,11 @@ export default function AboutPage() {
   }
 
   return (
-    <>
-      <BackgroundEffect ref={backgroundRef} />
-      <div className="min-h-screen flex items-center justify-center px-4 py-20 relative z-10 pointer-events-none">
-        <div 
-          className="text-center space-y-6 max-w-4xl mx-auto pointer-events-auto"
-          onClick={handleContentClick}
-        >
+    <div className="min-h-screen flex items-center justify-center px-4 py-20 relative z-10 pointer-events-none">
+      <div 
+        className="text-center space-y-6 max-w-4xl mx-auto pointer-events-auto"
+        onClick={handleContentClick}
+      >
         {/* 第一行：大号名字 Creeper - 渐入动画 */}
         <FadeInText delay={300} duration={1000}>
           <h1 className="text-6xl md:text-8xl font-bold text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">
@@ -84,6 +82,5 @@ export default function AboutPage() {
         </CodeStyleSection>
       </div>
     </div>
-    </>
   )
 }

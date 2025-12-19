@@ -248,7 +248,457 @@ useEffect(() => {
 
 ---
 
-**文档创建时间**：2024年
-**最后更新**：2024年
-**优化版本**：v1.0
+## 案例二：路由切换导致的性能问题
 
+### 问题表现
+
+#### 症状
+1. **导航栏切换卡顿**：点击导航栏切换页面时，页面响应越来越慢
+2. **累积效应**：切换次数越多，卡顿越明显
+3. **时间特征**：每次路由切换后性能都会下降一点
+4. **内存泄漏特征**：长时间使用后，页面变得非常卡顿
+
+#### 系统资源
+- **内存占用**：可能逐渐增加（多个实例累积）
+- **GPU 资源**：多个 `requestAnimationFrame` 循环同时运行
+- **CPU 资源**：多个 WebGL 渲染器同时工作
+
+### 查找原因的思路
+
+#### 第一步：怀疑导航栏动画
+- 检查 `PillNav` 组件的 `useEffect` 依赖项
+- 检查 GSAP 动画是否正确清理
+- 检查事件监听器是否正确移除
+
+**初步结论**：导航栏动画有优化空间，但不是主要问题。
+
+#### 第二步：检查背景效果
+- 发现每个页面都有 `<BackgroundEffect />` 组件
+- 检查路由切换时组件是否被正确卸载
+- 检查 `requestAnimationFrame` 循环是否被正确停止
+
+**关键发现**：每个页面都创建独立的 `BackgroundEffect` 实例！
+
+### 排查办法
+
+#### 1. 代码审查
+```bash
+# 搜索所有使用 BackgroundEffect 的地方
+grep -r "BackgroundEffect" src/app/
+```
+
+**发现**：
+- `about/page.tsx` - 有 BackgroundEffect
+- `contact/page.tsx` - 有 BackgroundEffect
+- `projects/page.tsx` - 有 BackgroundEffect
+- `experience/page.tsx` - 有 BackgroundEffect
+- `notes/page.tsx` - 有 BackgroundEffect
+
+**问题**：每个页面都创建了独立的实例！
+
+#### 2. 检查清理逻辑
+```typescript
+// PixelBlast.tsx 的清理函数
+return () => {
+  if (threeRef.current && mustReinit) {
+    // ❌ 问题：提前返回，没有清理资源！
+    return;
+  }
+  // 下面的清理代码不会执行
+  cancelAnimationFrame(t.raf!);
+  // ...
+};
+```
+
+**发现**：当 `mustReinit` 为 true 时，清理函数提前返回，导致资源未清理。
+
+#### 3. 性能分析
+- 使用浏览器 Performance 工具
+- 观察 `requestAnimationFrame` 调用次数
+- 检查 WebGL 上下文数量
+
+**发现**：路由切换后，旧的 `requestAnimationFrame` 循环没有被停止。
+
+### 导致出现这个问题的原因
+
+#### 核心问题：多个实例同时运行
+
+##### 问题 1：每个页面都创建新实例
+```tsx
+// ❌ 问题代码：每个页面都这样写
+export default function AboutPage() {
+  const backgroundRef = useRef<PixelBlastHandle>(null)
+  return (
+    <>
+      <BackgroundEffect ref={backgroundRef} />  // 创建新实例
+      {/* ... */}
+    </>
+  )
+}
+```
+
+**影响**：
+- 路由从 `/about` 切换到 `/contact` 时：
+  1. `/about` 页面的 `BackgroundEffect` 应该卸载
+  2. `/contact` 页面的 `BackgroundEffect` 被创建
+  3. 但如果清理不彻底，两个实例可能同时运行
+
+##### 问题 2：清理逻辑有 bug
+```typescript
+// ❌ 问题代码
+return () => {
+  if (threeRef.current && mustReinit) {
+    // 只清理事件监听器，然后提前返回
+    // requestAnimationFrame 循环没有被停止！
+    return;
+  }
+  // 正确的清理代码在这里，但不会执行
+  cancelAnimationFrame(t.raf!);
+};
+```
+
+**影响**：
+- 当组件重新初始化时，旧的动画循环没有被停止
+- 导致多个 `requestAnimationFrame` 循环同时运行
+- 每个循环都在渲染 WebGL 场景，GPU 负担翻倍
+
+##### 问题 3：Next.js 路由切换特性
+- Next.js 使用客户端路由，组件可能不会完全卸载
+- 如果清理不彻底，旧的实例会继续运行
+- 多个页面组件可能同时存在于内存中
+
+### 什么场景会出现这个问题
+
+#### 典型场景
+1. **单页应用（SPA）路由切换**
+   - Next.js App Router
+   - React Router
+   - 其他客户端路由方案
+
+2. **组件在多个页面复用**
+   - 背景效果组件
+   - 全局动画组件
+   - 音频/视频播放器
+
+3. **需要清理资源的组件**
+   - WebGL/Canvas 组件
+   - WebSocket 连接
+   - 定时器/动画循环
+
+#### 触发条件
+- 用户频繁切换路由
+- 组件清理逻辑不完整
+- 使用 `useEffect` 但没有正确清理
+
+### 解决方案
+
+#### 方案 1：使用 Context 共享实例（推荐）
+
+##### 创建 BackgroundContext
+```typescript
+// contexts/BackgroundContext.tsx
+'use client'
+
+import { createContext, useContext, useRef, ReactNode } from 'react'
+import { PixelBlastHandle } from '@/components/background/BackgroundEffect'
+
+interface BackgroundContextType {
+  backgroundRef: React.RefObject<PixelBlastHandle>
+}
+
+const BackgroundContext = createContext<BackgroundContextType | null>(null)
+
+export function BackgroundProvider({ children }: { children: ReactNode }) {
+  const backgroundRef = useRef<PixelBlastHandle>(null)
+  return (
+    <BackgroundContext.Provider value={{ backgroundRef }}>
+      {children}
+    </BackgroundContext.Provider>
+  )
+}
+
+export function useBackground() {
+  const context = useContext(BackgroundContext)
+  if (!context) {
+    throw new Error('useBackground must be used within BackgroundProvider')
+  }
+  return context
+}
+```
+
+##### 在 layout 中使用
+```tsx
+// app/layout.tsx
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        <BackgroundProvider>
+          <BackgroundLayoutClient />  {/* 只在这里创建一次 */}
+          <Navbar />
+          <main>{children}</main>
+          <Footer />
+        </BackgroundProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+##### 在页面中使用
+```tsx
+// app/about/page.tsx
+export default function AboutPage() {
+  const { backgroundRef } = useBackground()  // 使用共享的 ref
+  
+  const handleClick = (e) => {
+    backgroundRef.current?.handleClick(e.clientX, e.clientY)
+  }
+  
+  return <div onClick={handleClick}>...</div>
+}
+```
+
+**优势**：
+- ✅ 只创建一个实例
+- ✅ 所有页面共享同一个背景效果
+- ✅ 路由切换时不会重复创建/销毁
+- ✅ 性能最优
+
+#### 方案 2：修复清理逻辑
+
+##### 修复前
+```typescript
+return () => {
+  if (threeRef.current && mustReinit) {
+    // ❌ 提前返回，资源未清理
+    return;
+  }
+  // 清理代码...
+};
+```
+
+##### 修复后
+```typescript
+return () => {
+  // ✅ 无论什么情况，都要清理资源
+  if (!threeRef.current) return;
+  const t = threeRef.current;
+  
+  // 确保停止动画循环（最重要！）
+  if (t.raf !== undefined && t.raf !== null) {
+    cancelAnimationFrame(t.raf);
+    t.raf = undefined;
+  }
+  
+  // 清理所有资源...
+  t.renderer.dispose();
+  // ...
+  
+  threeRef.current = null;
+};
+```
+
+**关键点**：
+- ✅ 无论 `mustReinit` 是否为 true，都要清理
+- ✅ 优先停止 `requestAnimationFrame` 循环
+- ✅ 确保所有资源都被释放
+
+### 能学到什么
+
+#### 1. React Context 的使用场景
+
+##### 适用场景
+- **全局状态共享**：主题、用户信息、配置
+- **单例组件**：背景效果、音频播放器、WebSocket 连接
+- **避免重复创建**：昂贵的组件（WebGL、Canvas）
+
+##### 最佳实践
+```typescript
+// ✅ 好的实践：使用 Context 共享单例
+const GlobalProvider = ({ children }) => {
+  const expensiveRef = useRef(null)
+  return (
+    <Context.Provider value={{ expensiveRef }}>
+      {children}
+    </Context.Provider>
+  )
+}
+
+// ❌ 不好的实践：每个组件都创建实例
+const Component = () => {
+  const expensiveRef = useRef(null)  // 每个组件都创建
+  return <ExpensiveComponent ref={expensiveRef} />
+}
+```
+
+#### 2. 组件清理的重要性
+
+##### 必须清理的资源
+1. **动画循环**
+   ```typescript
+   const raf = requestAnimationFrame(animate)
+   // 必须清理
+   return () => cancelAnimationFrame(raf)
+   ```
+
+2. **事件监听器**
+   ```typescript
+   window.addEventListener('resize', handler)
+   // 必须清理
+   return () => window.removeEventListener('resize', handler)
+   ```
+
+3. **WebGL 资源**
+   ```typescript
+   const renderer = new THREE.WebGLRenderer()
+   // 必须清理
+   return () => {
+     renderer.dispose()
+     geometry.dispose()
+     material.dispose()
+   }
+   ```
+
+4. **定时器**
+   ```typescript
+   const timer = setTimeout(fn, 1000)
+   // 必须清理
+   return () => clearTimeout(timer)
+   ```
+
+##### 清理函数的最佳实践
+```typescript
+useEffect(() => {
+  // 初始化资源
+  const resource = createResource()
+  
+  return () => {
+    // ✅ 好的实践：无论什么情况都清理
+    if (resource) {
+      resource.cleanup()
+    }
+    
+    // ❌ 不好的实践：条件性清理
+    if (someCondition) {
+      return  // 提前返回，资源未清理
+    }
+    resource.cleanup()
+  }
+}, [dependencies])
+```
+
+#### 3. Next.js 路由切换的特性
+
+##### 客户端路由的特点
+- 组件可能不会完全卸载
+- 多个页面组件可能同时存在
+- 需要手动清理资源
+
+##### 最佳实践
+```typescript
+// ✅ 好的实践：在 layout 中创建单例
+export default function Layout({ children }) {
+  return (
+    <Provider>
+      <SingletonComponent />  {/* 只创建一次 */}
+      {children}  {/* 页面切换不影响单例 */}
+    </Provider>
+  )
+}
+
+// ❌ 不好的实践：在每个页面创建
+export default function Page() {
+  return <ExpensiveComponent />  {/* 每次切换都创建 */}
+}
+```
+
+#### 4. 性能问题排查流程
+
+##### 系统化排查步骤
+1. **观察症状**：卡顿、内存增长、帧率下降
+2. **定位范围**：是特定操作还是全局问题
+3. **检查资源**：是否有资源泄漏
+4. **检查实例**：是否有重复创建
+5. **检查清理**：清理逻辑是否完整
+6. **验证修复**：修复后是否解决问题
+
+##### 排查工具
+- **浏览器 DevTools**
+  - Performance 面板：查看帧率和调用栈
+  - Memory 面板：检查内存泄漏
+  - Network 面板：检查资源加载
+
+- **代码分析**
+  - 搜索组件使用位置
+  - 检查 `useEffect` 清理函数
+  - 检查 `ref` 和实例管理
+
+#### 5. 性能优化原则
+
+##### 原则 1：避免重复创建
+```typescript
+// ✅ 好的实践：单例模式
+const globalInstance = useRef(null)
+
+// ❌ 不好的实践：每次渲染都创建
+const instance = new ExpensiveClass()
+```
+
+##### 原则 2：及时清理资源
+```typescript
+// ✅ 好的实践：完整的清理
+useEffect(() => {
+  const resource = create()
+  return () => {
+    resource.cleanup()  // 确保清理
+  }
+}, [])
+
+// ❌ 不好的实践：不清理或条件性清理
+useEffect(() => {
+  const resource = create()
+  // 没有清理函数
+}, [])
+```
+
+##### 原则 3：共享昂贵资源
+```typescript
+// ✅ 好的实践：使用 Context 共享
+const { sharedResource } = useSharedResource()
+
+// ❌ 不好的实践：每个组件都创建
+const resource = useRef(new ExpensiveResource())
+```
+
+### 优化效果对比
+
+#### 优化前
+- ❌ 每个页面都创建 `BackgroundEffect` 实例
+- ❌ 路由切换时旧的实例可能没有完全清理
+- ❌ 多个 `requestAnimationFrame` 循环同时运行
+- ❌ 切换 5 次路由后明显卡顿
+- ❌ GPU 使用率持续上升
+
+#### 优化后
+- ✅ 整个应用只有一个 `BackgroundEffect` 实例
+- ✅ 路由切换时不会重复创建/销毁
+- ✅ 只有一个 `requestAnimationFrame` 循环
+- ✅ 切换任意次数路由都流畅
+- ✅ GPU 使用率稳定
+
+### 相关文件
+
+- `contexts/BackgroundContext.tsx` - Context 实现
+- `components/layout/BackgroundLayoutClient.tsx` - 客户端包装组件
+- `app/layout.tsx` - 在 layout 中使用 Context
+- `components/background/PixelBlast.tsx` - 修复清理逻辑
+
+### 参考资料
+
+- [React Context API](https://react.dev/reference/react/createContext)
+- [Next.js Layouts](https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts)
+- [Three.js 资源释放](https://threejs.org/docs/#manual/en/introduction/How-to-dispose-of-objects)
+- [useEffect 清理函数](https://react.dev/reference/react/useEffect#cleanup)
+
+---
