@@ -72,7 +72,7 @@ export default function AboutPage() {
         </div>
 
         {/* 第四行：AboutMe 部分 - 代码风格 */}
-        <CodeStyleSection title="AboutMe" delay={1800} duration={800}>
+        <CodeStyleSection title="aboutMe" delay={1800} duration={800}>
           {/* 内容占位符，后续添加 */}
           <div className="h-4"></div>
           <div className="h-4"></div>

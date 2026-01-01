@@ -29,9 +29,11 @@ export default function CodeStyleSection({
   const content = (
     <div className="text-left font-mono">
       <div className="flex items-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">
+        <span className="text-[#DD84DD] text-3xl md:text-4xl font-bold">const</span>
+        <span className="ml-2 text-3xl md:text-4xl font-bold text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">
           {title}
-        </h2>
+        </span>
+        <span className="ml-2 text-white text-3xl md:text-4xl font-bold">=</span>
         <span className="ml-2 text-[#DD84DD] text-3xl md:text-4xl font-bold">{'{'}</span>
       </div>
       <div 
