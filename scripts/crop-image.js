@@ -92,3 +92,14 @@ cropWhiteBorder(inputPath, tempPath).then(() => {
   process.exit(1);
 });
 
+
+
+
+
+
+
+
+
+
+
+
