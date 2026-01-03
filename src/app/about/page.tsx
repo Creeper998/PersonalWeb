@@ -6,6 +6,7 @@ import TypewriterText from '@/components/animation/TypewriterText'
 import FadeInText from '@/components/animation/FadeInText'
 import { useBackground } from '@/contexts/BackgroundContext'
 import CodeStyleSection from '@/components/ui/CodeStyleSection'
+import { aboutMe } from '@/lib/constants'
 
 export default function AboutPage() {
   const roles = [
@@ -73,12 +74,41 @@ export default function AboutPage() {
 
         {/* 第四行：AboutMe 部分 - 代码风格 */}
         <CodeStyleSection title="aboutMe" delay={1800} duration={800}>
-          {/* 内容占位符，后续添加 */}
-          <div className="h-4"></div>
-          <div className="h-4"></div>
-          <div className="h-4"></div>
-          <div className="h-4"></div>
-          <div className="h-4"></div>
+          <div className="space-y-2">
+            <div>
+              <span className="text-[#80bfd2] text-lg md:text-xl font-bold">nickname:</span>
+              <span className="text-[#98c379] text-lg md:text-xl font-bold ml-2">"{aboutMe.nickname}"</span>
+              <span className="text-white">,</span>
+            </div>
+            <div>
+              <span className="text-[#80bfd2] text-lg md:text-xl font-bold">role:</span>
+              <span className="text-[#98c379] text-lg md:text-xl font-bold ml-2">"{aboutMe.role}"</span>
+              <span className="text-white">,</span>
+            </div>
+            <div>
+              <span className="text-[#80bfd2] text-lg md:text-xl font-bold">techStack:</span>
+              <span className="text-yellow-400 text-lg md:text-xl font-bold ml-2">[</span>
+              <div className="ml-4">
+                {aboutMe.techStack.map((tech, index) => (
+                  <div key={index}>
+                    <span className="text-[#98c379] text-lg md:text-xl font-bold">"{tech}"</span>
+                    {index < aboutMe.techStack.length - 1 && <span className="text-white">,</span>}
+                  </div>
+                ))}
+              </div>
+              <span className="text-yellow-400 text-lg md:text-xl font-bold">]</span>
+              <span className="text-white">,</span>
+            </div>
+            <div>
+              <span className="text-[#80bfd2] text-lg md:text-xl font-bold">motto:</span>
+              <span className="text-[#98c379] text-lg md:text-xl font-bold ml-2">"{aboutMe.motto}"</span>
+              <span className="text-white">,</span>
+            </div>
+            <div>
+              <span className="text-[#80bfd2] text-lg md:text-xl font-bold">funFact:</span>
+              <span className="text-[#98c379] text-lg md:text-xl font-bold ml-2">"{aboutMe.funFact}"</span>
+            </div>
+          </div>
         </CodeStyleSection>
       </div>
     </div>

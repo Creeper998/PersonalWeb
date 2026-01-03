@@ -29,20 +29,20 @@ export default function CodeStyleSection({
   const content = (
     <div className="text-left font-mono">
       <div className="flex items-center">
-        <span className="text-[#DD84DD] text-3xl md:text-4xl font-bold">const</span>
-        <span className="ml-2 text-3xl md:text-4xl font-bold text-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">
+        <span className="text-[#c678dd] text-4xl md:text-5xl font-bold">const</span>
+        <span className="ml-2 text-4xl md:text-5xl font-bold text-[#80bfd2]">
           {title}
         </span>
-        <span className="ml-2 text-white text-3xl md:text-4xl font-bold">=</span>
-        <span className="ml-2 text-[#DD84DD] text-3xl md:text-4xl font-bold">{'{'}</span>
+        <span className="ml-2 text-white text-4xl md:text-5xl font-bold">=</span>
+        <span className="ml-2 text-yellow-400 text-4xl md:text-5xl font-bold">{'{'}</span>
       </div>
       <div 
-        className="ml-6 mt-2 text-white text-base md:text-lg space-y-4"
+        className="ml-8 md:ml-10 mt-2 text-white text-base md:text-lg space-y-4"
         style={{ minHeight }}
       >
         {children}
       </div>
-      <div className="text-[#DD84DD] text-3xl md:text-4xl font-bold">{'}'}</div>
+      <div className="text-yellow-400 text-4xl md:text-5xl font-bold">{'}'}</div>
     </div>
   )
 

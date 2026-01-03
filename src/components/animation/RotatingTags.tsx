@@ -12,6 +12,8 @@ interface RotatingTagsProps {
   typingSpeed?: number
   /** 是否显示光标 */
   showCursor?: boolean
+  /** 删除速度（毫秒） */
+  deleteSpeed?: number
 }
 
 export default function RotatingTags({
@@ -19,9 +21,10 @@ export default function RotatingTags({
   duration = 2000,
   typingSpeed = 100,
   showCursor = true,
+  deleteSpeed = 50,
 }: RotatingTagsProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [isTypingComplete, setIsTypingComplete] = useState(false)
+  const [isDeleteComplete, setIsDeleteComplete] = useState(false)
   const isMountedRef = useRef(true)
 
   useEffect(() => {
@@ -34,23 +37,19 @@ export default function RotatingTags({
   useEffect(() => {
     if (tags.length === 0) return
 
-    // 当打字完成后，等待 duration 时间再切换到下一个标签
-    if (isTypingComplete) {
-      const timer = setTimeout(() => {
-        if (isMountedRef.current) {
-          setCurrentIndex((prev) => (prev + 1) % tags.length)
-          setIsTypingComplete(false)
-        }
-      }, duration)
-
-      return () => clearTimeout(timer)
+    // 当删除完成后，切换到下一个标签
+    if (isDeleteComplete) {
+      if (isMountedRef.current) {
+        setCurrentIndex((prev) => (prev + 1) % tags.length)
+        setIsDeleteComplete(false)
+      }
     }
-  }, [isTypingComplete, tags.length, duration])
+  }, [isDeleteComplete, tags.length])
 
-  // 确保动画持续循环
-  const handleTypingComplete = () => {
+  // 删除完成回调
+  const handleDeleteComplete = () => {
     if (isMountedRef.current) {
-      setIsTypingComplete(true)
+      setIsDeleteComplete(true)
     }
   }
 
@@ -65,7 +64,10 @@ export default function RotatingTags({
         showCursor={showCursor}
         autoStart={true}
         startDelay={0}
-        onComplete={handleTypingComplete}
+        enableDeleting={true}
+        deleteDelay={duration}
+        deleteSpeed={deleteSpeed}
+        onDeleteComplete={handleDeleteComplete}
       />
     </div>
   )
