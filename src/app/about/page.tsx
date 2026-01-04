@@ -77,12 +77,12 @@ export default function AboutPage() {
           <div className="space-y-2">
             <div>
               <span className="text-[#80bfd2] text-lg md:text-xl font-bold">nickname:</span>
-              <span className="text-[#98c379] text-lg md:text-xl font-bold ml-2">"{aboutMe.nickname}"</span>
+              <span className="text-[#98c379] text-lg md:text-xl font-bold ml-2">&quot;{aboutMe.nickname}&quot;</span>
               <span className="text-white">,</span>
             </div>
             <div>
               <span className="text-[#80bfd2] text-lg md:text-xl font-bold">role:</span>
-              <span className="text-[#98c379] text-lg md:text-xl font-bold ml-2">"{aboutMe.role}"</span>
+              <span className="text-[#98c379] text-lg md:text-xl font-bold ml-2">&quot;{aboutMe.role}&quot;</span>
               <span className="text-white">,</span>
             </div>
             <div>
@@ -91,7 +91,7 @@ export default function AboutPage() {
               <div className="ml-4">
                 {aboutMe.techStack.map((tech, index) => (
                   <div key={index}>
-                    <span className="text-[#98c379] text-lg md:text-xl font-bold">"{tech}"</span>
+                    <span className="text-[#98c379] text-lg md:text-xl font-bold">&quot;{tech}&quot;</span>
                     {index < aboutMe.techStack.length - 1 && <span className="text-white">,</span>}
                   </div>
                 ))}
@@ -101,12 +101,12 @@ export default function AboutPage() {
             </div>
             <div>
               <span className="text-[#80bfd2] text-lg md:text-xl font-bold">motto:</span>
-              <span className="text-[#98c379] text-lg md:text-xl font-bold ml-2">"{aboutMe.motto}"</span>
+              <span className="text-[#98c379] text-lg md:text-xl font-bold ml-2">&quot;{aboutMe.motto}&quot;</span>
               <span className="text-white">,</span>
             </div>
             <div>
               <span className="text-[#80bfd2] text-lg md:text-xl font-bold">funFact:</span>
-              <span className="text-[#98c379] text-lg md:text-xl font-bold ml-2">"{aboutMe.funFact}"</span>
+              <span className="text-[#98c379] text-lg md:text-xl font-bold ml-2">&quot;{aboutMe.funFact}&quot;</span>
             </div>
           </div>
         </CodeStyleSection>
