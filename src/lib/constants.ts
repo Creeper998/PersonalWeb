@@ -10,6 +10,7 @@ export const notes: Note[] = []
 export const API_BASE_URL = 'http://localhost:3000/api'
 
 // 关于我的信息
+// 测试中文编码：这是一个测试注释，用于验证 Git 提交时中文是否正常显示
 export const aboutMe = {
   nickname: "Creeper", 
   role: "An aspiring full-stack developer in continuous learning and improvement", 
