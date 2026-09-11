@@ -1,30 +1,32 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import TerminalAnimation from './TerminalAnimation'
 import TerminalWindow from './TerminalWindow'
+import styles from './terminal.module.css'
 
 const terminalCommands = [
-  { 
-    cmd: 'pwd', 
-    output: '/home/daniel/Documents',
-    delay: 500
+  {
+    cmd: 'pwd',
+    output: '~/creeper',
+    delay: 500,
   },
-  { 
-    cmd: 'cd portfolio', 
+  {
+    cmd: 'cd portfolio',
     output: '',
-    delay: 500
+    delay: 500,
   },
-  { 
-    cmd: 'ls', 
-    output: 'node_modules/  package.json  public/  src/  next.config.js  tailwind.config.ts  tsconfig.json',
-    delay: 800
+  {
+    cmd: 'ls',
+    output:
+      'node_modules/  package.json  public/  src/  next.config.js  tailwind.config.ts  tsconfig.json',
+    delay: 800,
   },
-  { 
-    cmd: 'npm run dev', 
-    output: '> portfolio-frontend@1.0.0 dev\n> next dev\n\n   ▲ Next.js 15.5.9\n   - Local:        http://localhost:3000\n   - Network:      http://192.168.124.21:3000\n\n ✓ Starting...\n ✓ Ready in 2.8s',
-    delay: 1000
+  {
+    cmd: 'npm run dev',
+    output: 'Creeper · 个人网站\n\n关于 / 项目 / 经历 / 笔记 / 联系',
+    delay: 1000,
   },
 ]
 
@@ -41,30 +43,45 @@ export default function FirstVisitOverlay() {
   const [showAnimation, setShowAnimation] = useState<boolean>(true)
   const [mounted, setMounted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const navigationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(
+    () => () => {
+      if (navigationTimerRef.current) clearTimeout(navigationTimerRef.current)
+      navigationTimerRef.current = null
+    },
+    [],
+  )
 
   useEffect(() => {
     setMounted(true)
-    
+
     // 只在根路径 / 时显示动画和跳转
     if (pathname !== '/') {
       setShowAnimation(false)
       return
     }
-    
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setShowAnimation(false)
+      router.replace('/about')
+      return
+    }
+
     // 开发模式下，可以通过 URL 参数清除标记：?clearAnimation=true
     const urlParams = new URLSearchParams(window.location.search)
     const clearAnimation = urlParams.get('clearAnimation') === 'true'
     if (clearAnimation) {
       sessionStorage.removeItem('animationShown')
     }
-    
+
     // 检查当前会话是否已显示动画（使用 sessionStorage）
     // sessionStorage 在标签页关闭时会自动清除，所以每次新打开页面时都是空的
     const hasShownInSession = sessionStorage.getItem('animationShown')
-    
+
     // 开发模式下，可以通过 URL 参数强制显示动画：?showAnimation=true
     const forceShow = urlParams.get('showAnimation') === 'true'
-    
+
     // 如果强制显示或未在当前会话显示过，显示动画
     if (forceShow || !hasShownInSession) {
       // 未在当前会话显示过或强制显示，显示动画并标记
@@ -118,25 +135,26 @@ export default function FirstVisitOverlay() {
     }
   }, [router, pathname])
 
-  const handleAnimationComplete = () => {
+  const handleAnimationComplete = useCallback(() => {
+    if (navigationTimerRef.current) return
     // 终端命令动画结束后，先展示一小段加载动画，再跳转到 about 页面
     setIsLoading(true)
-    setTimeout(() => {
+    navigationTimerRef.current = setTimeout(() => {
       setShowAnimation(false)
       // 跳转到 about 页面
       router.push('/about')
     }, 1500)
-  }
+  }, [router])
 
   // 组件还未挂载时，不渲染（避免 hydration mismatch）
   if (!mounted) return null
-  
+
   // 不需要显示动画时，返回 null
   if (!showAnimation) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-terminal-bg min-h-screen flex items-center justify-center px-4 py-20">
-      <div className="w-full max-w-4xl">
+    <div className={styles.overlay}>
+      <div className="w-full max-w-2xl">
         {!isLoading ? (
           <TerminalAnimation
             commands={terminalCommands}
@@ -145,35 +163,15 @@ export default function FirstVisitOverlay() {
           />
         ) : (
           <TerminalWindow>
-            <div className="space-y-6 py-8">
-              {/* 加载文本和动画 */}
-              <div className="flex items-center justify-center gap-3">
-                <span className="text-terminal-prompt">$</span>
-                <span className="text-terminal-text">Loading Creeper</span>
-                <div className="flex gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-terminal-green animate-pulse [animation-delay:0s]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-terminal-green animate-pulse [animation-delay:0.2s]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-terminal-green animate-pulse [animation-delay:0.4s]" />
-                </div>
+            <div className={styles.loading} role="status">
+              <div className={styles.loadingLabel}>
+                <span aria-hidden="true">✓</span>
+                <span>正在进入 Creeper</span>
               </div>
-              
-              {/* 进度条 */}
-              <div className="w-full max-w-md mx-auto">
-                <div className="h-1 bg-terminal-bg-alt rounded-full overflow-hidden">
-                  <div className="h-full bg-terminal-green rounded-full animate-[loading_1.5s_ease-in-out_infinite] origin-left" />
-                </div>
+              <div className={styles.loadingTrack} aria-hidden="true">
+                <div className={styles.loadingFill} />
               </div>
-              
-              {/* 状态信息 */}
-              <div className="text-center space-y-2">
-                <p className="text-terminal-text text-sm opacity-75">
-                  Initializing components...
-                </p>
-                <div className="flex items-center justify-center gap-2 text-terminal-green text-xs">
-                  <span className="animate-spin">⟳</span>
-                  <span>Preparing your experience</span>
-                </div>
-              </div>
+              <p className={styles.loadingNote}>即将打开个人主页</p>
             </div>
           </TerminalWindow>
         )}

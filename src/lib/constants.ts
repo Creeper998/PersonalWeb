@@ -9,6 +9,17 @@ export const notes: Note[] = []
 // API 基础地址，可通过环境变量配置
 export const API_BASE_URL = 'http://localhost:3000/api'
 
+// 默认分类列表
+export const DEFAULT_CATEGORIES = [
+  '面试经验',
+  '手撕代码',
+  '前端知识',
+  '后端知识',
+  '数据库',
+  '算法',
+  '其他'
+] as const
+
 // 关于我的信息
 // 测试中文编码：这是一个测试注释，用于验证 Git 提交时中文是否正常显示
 export const aboutMe = {

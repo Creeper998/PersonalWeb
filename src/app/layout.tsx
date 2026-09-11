@@ -7,11 +7,8 @@ import './globals.css'
 import './pill-nav.css'
 
 export const metadata: Metadata = {
-  title: '个人网站',
+  title: 'Creeper',
   description: 'Creeper的个人网站(介绍、收录、学习)',
-  icons: {
-    icon: '/img/headedImg.png',
-  },
 }
 
 export default function RootLayout({

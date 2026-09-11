@@ -9,6 +9,8 @@ interface PillNavItem {
   label: string
   href: string
   ariaLabel?: string
+  /** Another frontend zone must load its own document/runtime. */
+  hardNavigation?: boolean
 }
 
 interface PillNavProps {
@@ -369,7 +371,7 @@ export default function PillNav({
               const isActive = pathname === item.href
               return (
                 <li key={item.href || `item-${i}`} role="none">
-                  {isRouterLink(item.href) ? (
+                  {isRouterLink(item.href) && !item.hardNavigation ? (
                     <Link
                       role="menuitem"
                       href={item.href}
@@ -439,7 +441,7 @@ export default function PillNav({
             const isActive = pathname === item.href
             return (
               <li key={item.href || `mobile-item-${i}`}>
-                {isRouterLink(item.href) ? (
+                {isRouterLink(item.href) && !item.hardNavigation ? (
                   <Link
                     href={item.href}
                     className={`mobile-menu-link${isActive ? ' is-active' : ''}`}
@@ -450,6 +452,7 @@ export default function PillNav({
                 ) : (
                   <a
                     href={item.href}
+                    aria-label={item.ariaLabel || item.label}
                     className={`mobile-menu-link${isActive ? ' is-active' : ''}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
@@ -464,5 +467,4 @@ export default function PillNav({
     </div>
   )
 }
-
 

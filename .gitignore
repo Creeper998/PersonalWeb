@@ -25,10 +25,12 @@ yarn-error.log*
 # local env files
 .env*.local
 
+# Runtime notes and categories are personal data, not source code.
+/data/
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-

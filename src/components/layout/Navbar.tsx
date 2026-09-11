@@ -1,6 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
+import Link from 'next/link'
+import { BrandMark } from '@/components/branding/brand-mark'
 import PillNav from './PillNav'
 
 /**
@@ -16,6 +18,12 @@ export default function Navbar() {
     { href: '/projects', label: 'projects' },
     { href: '/notes', label: 'notes' },
     { href: '/contact', label: 'contact' },
+    {
+      href: process.env.NEXT_PUBLIC_AGENT_ENTRY_URL || '/workspace/chats/new',
+      label: 'agent',
+      ariaLabel: '进入 Agent 工作区',
+      hardNavigation: true,
+    },
   ], [])
 
   return (
@@ -23,8 +31,11 @@ export default function Navbar() {
       <div className="pointer-events-auto">
         <PillNav
           items={navItems}
-          logoSrc="/reactbits-logo.svg"
-          logoAlt="ReactBits Logo"
+          logoComponent={
+            <Link href="/about" aria-label="Creeper 首页" className="flex h-full w-full items-center justify-center rounded-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+              <BrandMark size={26} tone="light" />
+            </Link>
+          }
           // 浅色主题：白色 pill，黑色文字，悬停时黑底白字
           baseColor="#000000"
           pillColor="#ffffff"
@@ -36,5 +47,3 @@ export default function Navbar() {
     </nav>
   )
 }
-
-
